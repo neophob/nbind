@@ -243,6 +243,7 @@ static void nop(const Nan::FunctionCallbackInfo<v8::Value> &args) {
 
 static void initModule(Local<Object> exports) {
 	SignatureParam *param;
+	auto context = exports->CreationContext();
 
 	for(auto &func : getFunctionList()) {
 		const BaseSignature *signature = func.getSignature();
@@ -258,6 +259,7 @@ static void initModule(Local<Object> exports) {
 		Local<v8::Function> jsFunction = Nan::GetFunction(functionTemplate).ToLocalChecked();
 
 		exports->Set(
+			context,
 			Nan::New<String>(func.getName()).ToLocalChecked(),
 			jsFunction
 		);
@@ -362,6 +364,7 @@ static void initModule(Local<Object> exports) {
 		Overloader::setPtrWrapper(bindClass->wrapperConstructorNum, bindClass->wrapPtr);
 
 		exports->Set(
+			context,
 			Nan::New<String>(bindClass->getName()).ToLocalChecked(),
 			jsConstructor
 		);
@@ -384,6 +387,11 @@ NBIND_CLASS(NBindID) {
 	method(toString);
 }
 
+#if NODE_MAJOR_VERSION >= 10
+NAN_MODULE_WORKER_ENABLED(nbind, initModule)
+#else
 NODE_MODULE(nbind, initModule)
+NODE_MODULE(nbind, initModule)
+#endif
 
 #endif
