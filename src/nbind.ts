@@ -116,6 +116,9 @@ function rethrow(err: any, result?: any) {
 
 function makeModulePathList(root: string, name: string) {
 	return([
+		// custom
+		[process.env['NBIND_BINARY_PATH'] || '', 'lib-nbind.node'],
+
 		// Binary copied using copyasm
 		[ root, name ],
 
@@ -158,13 +161,12 @@ function findCompiledModule<ResultType>(
 	const resolvedList: string[] = [];
 	const ext = path.extname(basePath);
 
-	/** If basePath has a known extension, check if it's a loadable module. */
+	// If basePath has a known extension, check if it's a loadable module.
 
 	for(let spec of specList) {
 		if(ext == spec.ext) {
 			try {
 				spec.path = require.resolve(basePath);
-
 				// Stop if a module was found.
 				callback(null, spec as ModuleSpec);
 				return(spec);
@@ -174,7 +176,7 @@ function findCompiledModule<ResultType>(
 		}
 	}
 
-	/** Try all possible subdirectories of basePath. */
+	// Try all possible subdirectories of basePath.
 
 	for(let spec of specList) {
 		// Check if any possible path contains a loadable module,
@@ -222,6 +224,7 @@ export function find(basePath?: any, cb?: FindCallback) {
 
 	return(findCompiledModule(
 		(basePath != callback && basePath) || process.cwd(), [
+			{ ext: '.node', name: 'lib-nbind.node', type: 'node' },
 			{ ext: '.node', name: 'nbind.node', type: 'node' },
 			{ ext: '.js',   name: 'nbind.js',   type: 'emcc' }
 		], callback
